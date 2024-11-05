@@ -12,6 +12,7 @@
 #define SNAP_LEN 1518
 #define CONFIG_FILE "config.txt"
 
+// Структуры
 typedef struct {
     char dbname[256];
     char user[256];
@@ -36,7 +37,7 @@ typedef struct {
 typedef struct {
     Database *db;
     pcap_t *handle;
-    char *filter_ip; // IP-адрес для фильтрации
+    char *filter_ip;
 } PacketCapture;
 
 // Интерфейс для работы с базой данных
@@ -52,7 +53,7 @@ typedef struct {
     void (*cleanup)(PacketCapture *capture);
 } PacketCaptureInterface;
 
-// Загрузка конфигурации базы данных
+// Загрузка конфигурации DB
 DBConfig* load_db_config(const char *filename) {
     DBConfig *config = malloc(sizeof(DBConfig));
     if (!config) {
@@ -77,7 +78,7 @@ DBConfig* load_db_config(const char *filename) {
     return config;
 }
 
-// Подключение к базе данных
+// Подключение к DB
 Database* db_connect(const DBConfig *config) {
     Database *db = malloc(sizeof(Database));
     if (!db) return NULL;
@@ -110,7 +111,7 @@ Database* db_connect(const DBConfig *config) {
     return db;
 }
 
-// Вставка данных о пакете в базу данных
+// Запись данных о пакете в DB
 void db_insert_packet_data(Database *db, const PacketInfo *packet_info) {
     const char *paramValues[6];
     
@@ -133,7 +134,7 @@ void db_insert_packet_data(Database *db, const PacketInfo *packet_info) {
     PQclear(res);
 }
 
-// Очистка ресурсов базы данных
+// Очистка ресурсов DB
 void db_cleanup(Database *db) {
     if (db) {
         PQfinish(db->conn);
@@ -197,7 +198,6 @@ void packet_capture_cleanup(PacketCapture *capture) {
     db_cleanup(capture->db);
 }
 
-// Основная функция
 int main() {
     DBConfig *config = load_db_config(CONFIG_FILE);
     if (!config) return EXIT_FAILURE;
@@ -206,7 +206,7 @@ int main() {
     free(config);
     if (!db) return EXIT_FAILURE;
 
-    PacketCapture capture = { .db = db, .filter_ip = "192.168.0.252" }; // Замените на ваш IP
+    PacketCapture capture = { .db = db, .filter_ip = "192.168.0.252" }; // IP адрес исключения
     start_capture(&capture);
     
     packet_capture_cleanup(&capture);
